@@ -25,32 +25,32 @@ import javax.swing.SwingConstants;
 public class LoblawProvisioning {
 
     //for input checking:
-    static String[] badChars = {"\"", "\\", ";", ":", "\'", "/", "`"};
+    static String[] bannedChars = {"\"", "\\", ";", ":", "\'", "/", "`"};
 
     //combobox options:
-    static String[] provinces = {"","AB", "BC", "MB", "NB", "NL", "NS",
+    static String[] provinces = {"", "AB", "BC", "MB", "NB", "NL", "NS",
         "NT", "NU", "ON", "PE", "QC", "SK", "YT"};
     static String[] bannerOptions
-            = {"","Dominion", "Extra Foods", "Fortinos", "Loblaws", "Maxi", "Nofrills",
+            = {"", "Dominion", "Extra Foods", "Fortinos", "Loblaws", "Maxi", "Nofrills",
                 "Provigo", "Save Easy", "Superstore", "Valu-mart", "YIG", "Zehrs Market"};
     static String[] configOptions
-            = {"","Array 2x2", "Array 4x4", "Audio only",
+            = {"", "Array 2x2", "Array 4x4", "Audio only",
                 "Menu Board", "Single Screen"};
-    static String[] wiredOptions = {"","Wired", "Wireless"};
+    static String[] wiredOptions = {"", "Wired", "Wireless"};
     static String[] locationOptions
-            = {"","ABM", "Aisle Display", "Colleague Staff room", "CFR (Conference room)",
+            = {"", "ABM", "Aisle Display", "Colleague Staff room", "CFR (Conference room)",
                 "End Cap", "Health and Beauty", "Hot Meals Ready", "Hub",
                 "Island Aisle Display", "Kiosk", "Lane", "Optical", "Pet",
                 "Pharmacy", "Rate Board"};
-    static String[] interactiveOptions = {"","No", "Yes"};
-    static String[] languageOptions = {"","English", "French"};
+    static String[] interactiveOptions = {"", "No", "Yes"};
+    static String[] languageOptions = {"", "English", "French"};
     static String[] locTypeOptions
-            = {"","2 alpha", "Distribution Centre",
+            = {"", "2 alpha", "Distribution Centre",
                 "Gas Bar", "Office", "Store"};
-    static String[] manufacturerOptions = {"","Lenovo", "Samsung", "Stratacache"};
-    static String[] orientationOptions = {"","Portrait", "Landscape"};
+    static String[] manufacturerOptions = {"", "Lenovo", "Samsung", "Stratacache"};
+    static String[] orientationOptions = {"", "Portrait", "Landscape"};
     static String[] provinceOptions
-            = {"","AB (Alberta)", "BC (British Columbia)", "MB (Manitoba)",
+            = {"", "AB (Alberta)", "BC (British Columbia)", "MB (Manitoba)",
                 "NB (New Brunswick)", "NL (Newfoundland and Labrador)",
                 "NS (Nova Scotia)", "NT (Northwest Territories)", "NU (Nunavut)",
                 "ON (Ontario)", "PE (Prince Edward Island)", "QC (Quebec)",
@@ -80,8 +80,7 @@ public class LoblawProvisioning {
     static String sProvince = "";
     static String sPostal = "";
     static int storeProvince = 0;
-    
-    
+
     //tag infos
     static String tagLineOfBusiness = "PCF";
     static String tagStoreID = "";
@@ -126,7 +125,7 @@ public class LoblawProvisioning {
         frame.setContentPane(canvas);
         frame.setVisible(true);
         canvas.requestFocusInWindow();
-    } 
+    }
 
     private static void makeTechPanel() {
         //set our window dimensions:
@@ -465,29 +464,6 @@ public class LoblawProvisioning {
 
     }
 
-    private static void clearButtonPressed() {
-        System.out.println("CLEAR");
-        clearStateFields();
-    }
-
-    private static void continueButtonPressed() {
-        if (currentCanvas.compareToIgnoreCase("tech") == 0) {
-
-            handleTechContinue();
-        } else if (currentCanvas.compareToIgnoreCase("store") == 0) {
-
-            handleStoreContinue();
-        } else if (currentCanvas.compareToIgnoreCase("tags") == 0) {
-            handleTagsContinue();
-        } else {
-            System.out.println("ERROR! BAD STATE CODE,"
-                    + " BAD! BAD STATE CODE, BAD!");
-            killCanvas();
-            return;
-        }
-        buildCanvas();
-    }
-
     private static void makePanel(String key) {
         if (key.compareToIgnoreCase("tech") == 0) {
             makeTechPanel();
@@ -524,7 +500,7 @@ public class LoblawProvisioning {
         tPhone = ((JTextField) entries.get(1)).getText();
         tCompany = ((JTextField) entries.get(2)).getText();
         poNum = poNumBox.getText();
-        if(badChars){
+        if (badChars) {
             return;
         }
 
@@ -544,7 +520,7 @@ public class LoblawProvisioning {
             displayErrors(errors);
             badChars = true;
         }
-        
+
         //setting these values so that when the form rebuilds, it remembers
         //the entries
         sPhone = ((JTextField) entries.get(0)).getText();
@@ -553,9 +529,8 @@ public class LoblawProvisioning {
         sProvince = provinces[((JComboBox) entries.get(3)).getSelectedIndex()];
         storeProvince = ((JComboBox) entries.get(3)).getSelectedIndex();
         sPostal = ((JTextField) entries.get(4)).getText();
-        
-        
-        if(badChars){//need to check if it failed basic input check
+
+        if (badChars) {//need to check if it failed basic input check
             return;//if so, break out to rebuild form.
         }
         //if the generic test passed, we are ready to push the info
@@ -575,50 +550,68 @@ public class LoblawProvisioning {
             displayErrors(errors);
             badChars = true;
         }
-        if(badChars){
-            return;
-        }
         //handle dropdowns
+        ////////////////////////////////////////////////////////////////banner
         String banner = bannerOptions[((JComboBox) entries.get(0)).getSelectedIndex()];
+        tagBanner = ((JComboBox) entries.get(0)).getSelectedIndex();
         System.out.println("banner:" + banner);
-
+        ///////////////////////////////////////////////////////////configuration
         String configuration = configOptions[((JComboBox) entries.get(1)).getSelectedIndex()];
+        tagConfig = ((JComboBox) entries.get(1)).getSelectedIndex();
         System.out.println("Configuration:" + configuration);
-
+        /////////////////////////////////////////////////////////connection type
         String connectionType = wiredOptions[((JComboBox) entries.get(2)).getSelectedIndex()];
+        tagConnectionType = ((JComboBox) entries.get(2)).getSelectedIndex();
         System.out.println("connection type:" + connectionType);
-
+        ///////////////////////////////////////////////////in building location
         String inBuildingLocation = locationOptions[((JComboBox) entries.get(3)).getSelectedIndex()];
+        tagInBuildingLocation = ((JComboBox) entries.get(3)).getSelectedIndex();
         System.out.println("In-Building Location:" + inBuildingLocation);
-
+        /////////////////////////////////////////////////////////////interactive
         String interactive = interactiveOptions[((JComboBox) entries.get(4)).getSelectedIndex()];
+        tagInteractive = ((JComboBox) entries.get(4)).getSelectedIndex();
         System.out.println("interactive:" + interactive);
-
+        ////////////////////////////////////////////////////////////////language
         String language = languageOptions[((JComboBox) entries.get(5)).getSelectedIndex()];
+        tagLanguage = ((JComboBox) entries.get(5)).getSelectedIndex();
         System.out.println("language:" + language);
-
-        String lineOfBusiness = ((JTextField) entries.get(6)).getText();
-        String storeID = ((JTextField) entries.get(7)).getText();
-        //loctype
+        ////////////////////////////////////////////////////////line of business
+        tagLineOfBusiness = ((JTextField) entries.get(6)).getText();
+        ////////////////////////////////////////////////////////////store number
+        tagStoreID = ((JTextField) entries.get(7)).getText();
+        ///////////////////////////////////////////////////////////location type
         String locationType = locTypeOptions[((JComboBox) entries.get(8)).getSelectedIndex()];
+        tagLocType = ((JComboBox) entries.get(8)).getSelectedIndex();
         System.out.println("Location Type:" + locationType);
-
+        ////////////////////////////////////////////////////////////manufacturer
         String manufacturer = manufacturerOptions[((JComboBox) entries.get(9)).getSelectedIndex()];
+        tagManufacturer = ((JComboBox) entries.get(9)).getSelectedIndex();
         System.out.println("Manufacturer:" + manufacturer);
-
-        String model = ((JTextField) entries.get(10)).getText();
-
+        //////////////////////////////////////////////////////manufacturer model
+        tagMPModel = ((JTextField) entries.get(10)).getText();
+        /////////////////////////////////////////////////////////////orientation
         String orientation = orientationOptions[((JComboBox) entries.get(11)).getSelectedIndex()];
+        tagOrientation = ((JComboBox) entries.get(11)).getSelectedIndex();
         System.out.println("Orientation:" + orientation);
+        //////////////////////////////////////////////////////////////ip address
+        tagIPAddress = ((JTextField) entries.get(12)).getText();
 
-        String ipAddress = ((JTextField) entries.get(12)).getText();
-        errors = device.setTags(banner, configuration, connectionType,
-                inBuildingLocation, interactive, language, lineOfBusiness, storeID,
-                locationType, manufacturer, model, orientation, ipAddress);
-        if (errors.size() > 0) {
-            displayErrors(errors);
-            return;
+        //now that we've saved their selections, we can check if we need to 
+        //rebuild the form because of a bad input
+        if (badChars) {// if an error had been detected 
+            return;//break to rebuild the form with inputted values
         }
+        //attempting to add this info onto the device, will receive an ArrayList
+        //of Strings which contain the detailed error message
+        errors = device.setTags(banner, configuration, connectionType,
+                inBuildingLocation, interactive, language, tagLineOfBusiness, tagStoreID,
+                locationType, manufacturer, tagMPModel, orientation, tagIPAddress);
+
+        if (errors.size() > 0) {//if the array list isnt empty, there's a problem
+            displayErrors(errors);//this method prints them all on a new window
+            return;//break to rebuild form with saved values
+        }
+        //if we got here, we did not have any errors, so this was a success
         currentCanvas = "done";
     }
 
@@ -632,19 +625,19 @@ public class LoblawProvisioning {
                     errors.add("Blank Value for input line " + (i + 1));
                 }
                 for (int j = 0; j < temp.getText().length(); j++) {//j through letters
-                    for (int k = 0; k < badChars.length; k++) {
-                        if ((temp.getText().charAt(j) + "").compareToIgnoreCase(badChars[k]) == 0) {
-                            errors.add("invalid character \"" + 
-                                    temp.getText().charAt(j) + "\" found in \""
-                                    + temp.getText() + "\" on line " + (i+1)
-                                    + " slot " + (j+1));
+                    for (int k = 0; k < bannedChars.length; k++) {
+                        if ((temp.getText().charAt(j) + "").compareToIgnoreCase(bannedChars[k]) == 0) {
+                            errors.add("invalid character \""
+                                    + temp.getText().charAt(j) + "\" found in \""
+                                    + temp.getText() + "\" on line " + (i + 1)
+                                    + " slot " + (j + 1));
                         }
                     }
                 }
             } catch (Exception e) {
                 try {
                     JComboBox temp = (JComboBox) entries.get(i);
-                    if(temp.getSelectedIndex()==0){
+                    if (temp.getSelectedIndex() == 0) {
                         errors.add("Line " + (i + 1) + " dropdown is empty");
                     }
                 } catch (Exception f) {
@@ -652,7 +645,7 @@ public class LoblawProvisioning {
                     System.out.println(e.getMessage());
                     System.out.println(f.getMessage());
                 }
-              
+
             }
         }
         return errors;
@@ -667,5 +660,28 @@ public class LoblawProvisioning {
         //to a joptionpane
         //JOptionPane.showMessageDialog(null, "message", "title", JOptionPane.ERROR_MESSAGE);
         JOptionPane.showMessageDialog(null, fullErrors, "Input Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private static void clearButtonPressed() {
+        System.out.println("CLEAR");
+        clearStateFields();
+    }
+
+    private static void continueButtonPressed() {
+        if (currentCanvas.compareToIgnoreCase("tech") == 0) {
+
+            handleTechContinue();
+        } else if (currentCanvas.compareToIgnoreCase("store") == 0) {
+
+            handleStoreContinue();
+        } else if (currentCanvas.compareToIgnoreCase("tags") == 0) {
+            handleTagsContinue();
+        } else {
+            System.out.println("ERROR! BAD STATE CODE,"
+                    + " BAD! BAD STATE CODE, BAD!");
+            killCanvas();
+            return;
+        }
+        buildCanvas();
     }
 }

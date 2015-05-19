@@ -5,7 +5,10 @@
  */
 package loblaw.provisioning;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  *
@@ -13,8 +16,8 @@ import java.util.ArrayList;
  */
 public class Computron {
 
-    String[] phoneToStrip = {"-", ".", "(", ")"};
-    String[] postToStrip = {"-", " "};
+    String[] phoneToStrip = {"-", ".", "(", ")"};//to remove valid non-numbers
+    String[] postToStrip = {"-", " "};//to remove valid non-alphanums
 
     //tech info
     String name = "";//needs checked
@@ -41,8 +44,12 @@ public class Computron {
     String modelTag = "";//needs checked
     String orientationTag = "";//from a dropdown - no checking needed
     String ipAddressTag = "";//needs checked
+    String serialTag = "";//needs checked                               TO DO
+    String hostname = "";
 
     public Computron() {
+        //silence is golden.
+        //...
 
     }
 
@@ -124,21 +131,24 @@ public class Computron {
         //jesus thats a lot of parameters 8O
         bannerTag = banner;
         configurationTag = config;
-         connectionTag = connectionType;//from a dropdown - no checking needed
-         iblocationTag = iBLoc;//from a dropdown - no checking needed
-         interactiveTag = interactive;//from a dropdown - no checking needed
-         languageTag = language;//from a dropdown - no checking needed
-         locTypeTag = locType;//from a dropdown - no checking needed
-         manufacturerTag = manufacturer;//from a dropdown - no checking needed
-         orientationTag = orientation;//from a dropdown - no checking needed
-         
-         ipAddressTag = ip;//needs checked
-         lOBTag = lOB;//needs checked
-         storeIDTag = storeID;//needs checked
-         modelTag = model;//needs checked
+        connectionTag = connectionType;//from a dropdown - no checking needed
+        iblocationTag = iBLoc;//from a dropdown - no checking needed
+        interactiveTag = interactive;//from a dropdown - no checking needed
+        languageTag = language;//from a dropdown - no checking needed
+        locTypeTag = locType;//from a dropdown - no checking needed
+        manufacturerTag = manufacturer;//from a dropdown - no checking needed
+        orientationTag = orientation;//from a dropdown - no checking needed
+
+        ipAddressTag = ip;//needs checked
+        lOBTag = lOB;//needs checked
+        storeIDTag = storeID;//needs checked
+        modelTag = model;//needs checked
 
         ArrayList<String> errors = new ArrayList();
         errors = testIP(ip);
+        errors.addAll(testLOB(lOB));
+        errors.addAll(testStoreIDTag(storeIDTag));
+        errors.addAll(testModelTag(model));
 
         return errors;
     }
@@ -194,7 +204,7 @@ public class Computron {
                 return false;
             }
 
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             System.out.println(e.getMessage());
             return false;
         }
@@ -237,66 +247,114 @@ public class Computron {
         System.out.println(tempPost);
         return tempPost;
     }
-    
-    private ArrayList<String> testIP(String ip){
+
+    private ArrayList<String> testIP(String ip) {
         ArrayList<String> errors = new ArrayList();
-        //making sure there are only 3 periods, and that none of them are in a row:
+        //making sure there are exactly 3 periods, and that none of them are in a row:
         boolean prevWasPeriod = false;
         int numPeriods = 0;
-        for(int i=0;i<ip.length();i++){
-            if((""+ip.charAt(i)).compareToIgnoreCase(".")==0){
-                numPeriods++;
-                if(prevWasPeriod){
-                    errors.add("two \".\" in a row at slot " + (i+1));
-                } else {
-                    prevWasPeriod = true;
+        for (int i = 0; i < ip.length(); i++) {//look at IP one char at a time
+            if (("" + ip.charAt(i)).compareToIgnoreCase(".") == 0) {//if its a .
+                numPeriods++;//increment how many . we have seen
+                if (prevWasPeriod) {//if previous char was also a .
+                    errors.add("two \".\" in a row at slot " + (i + 1));//error!
+                } else {//if previos char was not also a .
+                    prevWasPeriod = true;//the current . now is considered the prev
                 }
-            } else {
-                prevWasPeriod = false;
+            } else {//if character was not a .
+                prevWasPeriod = false;//current lack of . is now prev lack of
             }
         }
-        if(numPeriods!=3){
+        if (numPeriods != 3) {//if we dont have exactly 3 periods, error!
             errors.add("Ip has " + numPeriods + " periods, it needs exactly 3");
         }
-        if(errors.size()>0){
-            return errors;//we dont want to split the string if its not formatted correctly
-        }
-        
-        
-        //breaking down into octets
-        String firstOctet = ip.substring(0,ip.indexOf("."));
-        String rest = ip.substring(ip.indexOf(".")+1);
-        
-        try{
-            Integer.parseInt(firstOctet);
-        } catch(Exception e){
-         errors.add("first octet \"" + firstOctet + "\" is not a valid int");   
+        if (errors.size() > 0) {//if ip format is bad
+            return errors;//we want to break before attempting to split octets
         }
 
-        String secondOctet = rest.substring(0,rest.indexOf("."));
-        rest = rest.substring(rest.indexOf(".")+1);
-        try{
+        //breaking down into octets
+        String firstOctet = ip.substring(0, ip.indexOf("."));
+        String rest = ip.substring(ip.indexOf(".") + 1);
+
+        try {
+            Integer.parseInt(firstOctet);
+        } catch (Exception e) {
+            errors.add("first octet \"" + firstOctet + "\" is not a valid int");
+        }
+
+        String secondOctet = rest.substring(0, rest.indexOf("."));
+        rest = rest.substring(rest.indexOf(".") + 1);
+        try {
             Integer.parseInt(secondOctet);
-        } catch(Exception e){
-         errors.add("second Octet \"" + secondOctet + "\" is not a valid int");   
+        } catch (Exception e) {
+            errors.add("second Octet \"" + secondOctet + "\" is not a valid int");
         }
 
         String thirdOctet = rest.substring(0, rest.indexOf("."));
-        rest = rest.substring(rest.indexOf(".")+1);
-        try{
+        rest = rest.substring(rest.indexOf(".") + 1);
+        try {
             Integer.parseInt(thirdOctet);
-        } catch(Exception e){
-         errors.add("third Octet \"" + thirdOctet + "\" is not a valid int");   
+        } catch (Exception e) {
+            errors.add("third Octet \"" + thirdOctet + "\" is not a valid int");
         }
-        
+
         String fourthOctet = rest;
-        try{
+        try {
             Integer.parseInt(fourthOctet);
-        } catch(Exception e){
-         errors.add("fourth Octet \"" + fourthOctet + "\" is not a valid int");   
+        } catch (Exception e) {
+            errors.add("fourth Octet \"" + fourthOctet + "\" is not a valid int");
         }
-        
-        
+
         return errors;
+    }
+
+    private ArrayList<String> testLOB(String lOB) {
+        //TO DO
+        return null;
+    }
+
+    private ArrayList<String> testStoreIDTag(String storeIDTag) {
+        //To Do
+        return null;
+    }
+
+    private ArrayList<String> testModelTag(String model) {
+        //To Do
+        return null;
+    }
+
+    public String getCSVString() {
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd");
+        Calendar cal = Calendar.getInstance();
+        String dateTag = dateFormat.format(cal.getTime());
+        //oh god the horra
+        String tagNames = "properties.system.hostname,resolve,"
+                + "properties.system.ipAddress,properties.system.mac,"
+                + "proxy,outproxy,properties.system.opstate,device.serial,"
+                + "type.type,type.brand,type.series,type.model,"
+                + "system.module.version,login,password,location.level1,"
+                + "location.level2,location.level3,location.level4,"
+                + "location.level5,location.zip,latitude,longitude,ocreceiver,"
+                + "ocsender,properties.category,properties.system.sec.hostname,"
+                + "properties.system.sec.ipAddress,properties.system.sec.mac,"
+                + "Banner,Configuration,Connection Type,In-Building Location,"
+                + "Interactive,Language,Line of Business,Location ID,"
+                + "Location Type,MP_Manufacturer,MP_Manufacturer_Model,"
+                + "NOC Monitor,Orientation,Provisioned_Date";
+        String nl = "\n";
+        String c = ",";
+        //bohica
+        String values = hostname + c + "false" + c + ipAddressTag + c
+                + c + c + c + "Running" + serialTag + c + "Digital Signage Network Player" + c
+                + "Stratacache" + c + "Spectra 200" + c + "S-200-W7" + c + c + c + c
+                + "North America" + c + "Canada" + c + storeProvince + c + storeCity + c
+                + storeStreet + c + storePostal + c + "0.0" + c + "0.0" + c + "true" + c + "false" + c
+                + c + c + c + c + bannerTag + c + configurationTag + c + connectionTag + c
+                + iblocationTag + c + interactiveTag + c + languageTag + c + lOBTag + c
+                + storeIDTag + c + locTypeTag + c + manufacturerTag + c + modelTag + c
+                + "Yes" + c + orientationTag + dateTag;
+
+        return tagNames + nl + values;
     }
 }
