@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import javax.swing.BoundedRangeModel;
 import javax.swing.JButton;
@@ -37,20 +38,27 @@ public class LoblawProvisioning {
     static String[] provinces = {"", "AB", "BC", "MB", "NB", "NL", "NS",
         "NT", "NU", "ON", "PE", "QC", "SK", "YT"};
     static String[] bannerOptions
-            = {"", "Dominion", "Extra Foods", "Fortinos", "Loblaws", "Maxi", "Nofrills",
-                "Provigo", "Save Easy", "Superstore", "Valu-mart", "YIG", "Zehrs Market"};
+            = {"", "Dominion", "Extra Foods", "Fortinos",
+                "Loblaws", "Maxi", "Nofrills",
+                "Provigo", "Save Easy", "Superstore", 
+                "Valu-mart", "YIG", "Zehrs Market"};
     static String[] configOptions
             = {"", "Array 2x2", "Array 4x4", "Audio only",
                 "Menu Board", "Single Screen"};
     static String[] wiredOptions = {"", "Wired", "Wireless"};
     static String[] locationOptions
-            = {"", "ABM", "Aisle Display", "Colleague Staff room", "CFR (Conference room)",
+            = {"", "ABM", "Aisle Display", "Colleague Staff room","Conference Room",
                 "End Cap", "Health and Beauty", "Hot Meals Ready", "Hub",
                 "Island Aisle Display", "Kiosk", "Lane", "Optical", "Pet",
                 "Pharmacy", "Rate Board"};
+    static String[] locationTags = {"", "ABM","Aisle Display", 
+        "Colleague Staff Room", "CFR","End Cap","Health and Beauty",
+        "Hot Meals Ready", "HUB","Island Aisle Display","KOK", "LNE", "Optical",
+        "Pet", "Pharmacy", "RTB"};
     static String[] interactiveOptions = {"", "No", "Yes"};
     static String[] languageOptions = {"", "English", "French"};
-    static String[] lOBOptions = {"", "Optical", "PCF (President's Choice Financial)", "eCommerce"};
+    static String[] lOBOptions = {"", "Optical",
+        "PCF", "eCommerce"};
     static String[] locTypeOptions
             = {"", "2 alpha", "Distribution Centre",
                 "Gas Bar", "Office", "Store"};
@@ -62,12 +70,14 @@ public class LoblawProvisioning {
                 "NS (Nova Scotia)", "NT (Northwest Territories)", "NU (Nunavut)",
                 "ON (Ontario)", "PE (Prince Edward Island)", "QC (Quebec)",
                 "SK (Saskatchewan)", "YT (Yukon)"};
+    static String[] provinceTags = {"", "AB", "BC", "MB", "NB", "NL",
+        "NS", "NT", "NU", "ON", "PE", "QC", "SK", "YT"};
 
     ///default choices for tag dropdowns:
     static int tagBanner = 0;
     static int tagConfig = 0;
     static int tagConnectionType = 0;
-    static int tagInBuildingLocation = 0;
+    static int selectedIBLindex = 0;
     static int tagInteractive = 0;
     static int tagLanguage = 0;
     static int tagLineOfBusiness = 0;
@@ -173,13 +183,13 @@ public class LoblawProvisioning {
         //so there is no need to test it in entries
         //just use the poNum variable.
 
-        JButton clearButton = new JButton("CLEAR");
+        JButton clearButton = new JButton("Reset");
 
         clearButton.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
-                clearButtonPressed();
+                resetButtonPressed();
             }
 
         });
@@ -257,13 +267,13 @@ public class LoblawProvisioning {
         JTextField postalBox = new JTextField(sPostal);
         entries.add(postalBox);
 
-        JButton clearButton = new JButton("CLEAR");
+        JButton clearButton = new JButton("Reset");
 
         clearButton.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
-                clearButtonPressed();
+                resetButtonPressed();
             }
 
         });
@@ -343,7 +353,7 @@ public class LoblawProvisioning {
         JPanel locationLine = new JPanel(new GridLayout(1, 2));//In-Building Location tag
         JLabel locationlbl = new JLabel("In-Building Location:");
         JComboBox locationBox = new JComboBox(locationOptions);
-        locationBox.setSelectedIndex(tagInBuildingLocation);
+        locationBox.setSelectedIndex(selectedIBLindex);
         locationLine.add(locationlbl);
         locationLine.add(locationBox);
         entries.add(locationBox);
@@ -434,13 +444,13 @@ public class LoblawProvisioning {
 //////////////////////////////////////////////////////////////////////////////
         //adding button line
         JPanel buttonLine = new JPanel(new GridLayout(1, 2));
-        JButton clearButton = new JButton("CLEAR");
+        JButton clearButton = new JButton("Reset");
 
         clearButton.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
-                clearButtonPressed();
+                resetButtonPressed();
             }
 
         });
@@ -538,15 +548,24 @@ public class LoblawProvisioning {
             tagsPreview = tagsPreview + tagArray[i] + ": " + valuesArray[i] + " \n";
         }
 
-
         JTextArea display = new JTextArea(10, 40);
         display.setText(tagsPreview);
         display.setEditable(false);
         JScrollPane displayPane = new JScrollPane(display);
 
         JPanel buttonBar = new JPanel(new GridLayout(1, 2));
-        JButton ticketDump = new JButton("Pastable Ticket Description");
+        JButton ticketDump = new JButton("Pastable Ticket Info");
+        
+        
         JButton exportButton = new JButton("Export to CSV");
+        exportButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                writeToCSV();
+            }
+        });
+        
+        
         buttonBar.add(ticketDump);
         buttonBar.add(exportButton);
 
@@ -579,7 +598,7 @@ public class LoblawProvisioning {
     }
 
     private static void clearStateFields() {
-        System.out.println("CLEAR");
+        System.out.println("Reset");
         entries = new ArrayList();
         buildCanvas();
     }
@@ -623,7 +642,7 @@ public class LoblawProvisioning {
         sPhone = ((JTextField) entries.get(0)).getText();
         sStreet = ((JTextField) entries.get(1)).getText();
         sCity = ((JTextField) entries.get(2)).getText();
-        sProvince = provinces[((JComboBox) entries.get(3)).getSelectedIndex()];
+        sProvince = provinceTags[((JComboBox) entries.get(3)).getSelectedIndex()];
         storeProvince = ((JComboBox) entries.get(3)).getSelectedIndex();
         sPostal = ((JTextField) entries.get(4)).getText();
 
@@ -661,8 +680,9 @@ public class LoblawProvisioning {
         tagConnectionType = ((JComboBox) entries.get(2)).getSelectedIndex();
         System.out.println("connection type:" + connectionType);
         ///////////////////////////////////////////////////in building location
-        String inBuildingLocation = locationOptions[((JComboBox) entries.get(3)).getSelectedIndex()];
-        tagInBuildingLocation = ((JComboBox) entries.get(3)).getSelectedIndex();
+        String inBuildingLocation = locationTags[((JComboBox) entries.get(3)).getSelectedIndex()];
+        selectedIBLindex = ((JComboBox) entries.get(3)).getSelectedIndex();
+        
         System.out.println("In-Building Location:" + inBuildingLocation);
         /////////////////////////////////////////////////////////////interactive
         String interactive = interactiveOptions[((JComboBox) entries.get(4)).getSelectedIndex()];
@@ -784,8 +804,31 @@ public class LoblawProvisioning {
         JOptionPane.showMessageDialog(null, fullErrors, "Input Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    private static void clearButtonPressed() {
-        System.out.println("CLEAR");
+    private static void resetButtonPressed() {
+    tagBanner = 0;
+    tagConfig = 0;
+    tagConnectionType = 0;
+    selectedIBLindex = 0;
+    tagInteractive = 0;
+    tagLanguage = 0;
+    tagLineOfBusiness = 0;
+    tagLocType = 0;
+    tagManufacturer = 0;
+    tagOrientation = 0;
+
+    //tech infos
+    tName = "";
+    tPhone = "";
+    tCompany = "BFG";
+    poNum = "N/A";
+
+    //store infos
+    sPhone = "";
+    sStreet = "";
+    sCity = "";
+    sProvince = "";
+    sPostal = "";
+    storeProvince = 0;
         clearStateFields();
     }
 
@@ -811,6 +854,18 @@ public class LoblawProvisioning {
             return;
         }
         buildCanvas();
+    }
+
+    private static void writeToCSV() {
+        FileWriter tofile;
+        try {
+            tofile = new FileWriter(device.getHostname()+".csv");
+            tofile.write(device.getCSVString());
+            tofile.close();
+        } catch (Exception e) {
+            System.out.println("Write error!");
+        }
+        
     }
 
 }

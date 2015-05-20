@@ -392,4 +392,7 @@ public class Computron {
         }
         return leadingZeros+storeIDTag+"_"+"DS"+"_"+iblocationTag+"_";
     }
+    public String getHostname(){
+        return hostname;
+    }
 }
