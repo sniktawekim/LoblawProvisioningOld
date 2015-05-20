@@ -5,10 +5,13 @@
  */
 package loblaw.provisioning;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import javax.swing.BoundedRangeModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -16,6 +19,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
@@ -25,7 +31,7 @@ import javax.swing.SwingConstants;
 public class LoblawProvisioning {
 
     //for input checking:
-    static String[] bannedChars = {"\"", "\\", ";", ":", "\'", "/", "`"};
+    static String[] bannedChars = {"\"", "\\", ";", ":", "\'", "/", "`", ","};
 
     //combobox options:
     static String[] provinces = {"", "AB", "BC", "MB", "NB", "NL", "NS",
@@ -44,6 +50,7 @@ public class LoblawProvisioning {
                 "Pharmacy", "Rate Board"};
     static String[] interactiveOptions = {"", "No", "Yes"};
     static String[] languageOptions = {"", "English", "French"};
+    static String[] lOBOptions = {"", "Optical", "PCF (President's Choice Financial)", "eCommerce"};
     static String[] locTypeOptions
             = {"", "2 alpha", "Distribution Centre",
                 "Gas Bar", "Office", "Store"};
@@ -63,6 +70,7 @@ public class LoblawProvisioning {
     static int tagInBuildingLocation = 0;
     static int tagInteractive = 0;
     static int tagLanguage = 0;
+    static int tagLineOfBusiness = 0;
     static int tagLocType = 0;
     static int tagManufacturer = 0;
     static int tagOrientation = 0;
@@ -82,7 +90,6 @@ public class LoblawProvisioning {
     static int storeProvince = 0;
 
     //tag infos
-    static String tagLineOfBusiness = "PCF";
     static String tagStoreID = "";
     static String tagMPModel = "TinyPC";
     static String tagIPAddress = "172.23.";
@@ -100,6 +107,9 @@ public class LoblawProvisioning {
     static String currentCanvas = "tech";//state manager
 
     static ArrayList<JComponent> entries;
+    static int bgRedstat = 238;
+    static int bgGreenstat = 238;
+    static int bgBluestat = 238;
 
     public static void main(String[] args) {
         init();
@@ -360,7 +370,8 @@ public class LoblawProvisioning {
         //Strings:
         JPanel businessLine = new JPanel(new GridLayout(1, 2));//Line of Business tag
         JLabel businesslbl = new JLabel("Line of Business");
-        JTextField businessBox = new JTextField(tagLineOfBusiness);
+        JComboBox businessBox = new JComboBox(lOBOptions);
+        businessBox.setSelectedIndex(tagLineOfBusiness);
         businessLine.add(businesslbl);
         businessLine.add(businessBox);
         entries.add(businessBox);
@@ -464,6 +475,88 @@ public class LoblawProvisioning {
 
     }
 
+    private static void makeHostnamePanel() {
+        canvas.setLayout(new BorderLayout());
+        panelWidth = 500;
+        panelHeight = 200;
+
+        JTextField deviceNumber = new JTextField("01");
+        entries.add(deviceNumber);
+        JPanel deviceBar = new JPanel(new GridLayout(1, 2));
+        JLabel deviceNumlbl = new JLabel("Device #:");
+        deviceBar.add(deviceNumlbl);
+        deviceBar.add(deviceNumber);
+
+        JTextField hostNameBox = new JTextField(device.getHostnamePrefix());
+        JPanel hostNameLine = new JPanel(new GridLayout(1, 3));
+        JLabel hostnamelbl = new JLabel("Hostname Prefix:");
+        hostNameBox.setEditable(false);
+
+        hostNameLine.add(hostnamelbl);
+        hostNameLine.add(hostNameBox);
+        hostNameLine.add(deviceBar);
+
+        JTextArea display = new JTextArea(1, 10);
+        display.setText("Search CM for hostname and set the device number to the smallest non-taken integer");
+        display.setEditable(false);
+        Color beige = new Color(bgRedstat, bgGreenstat, bgBluestat);
+        display.setBackground(beige);
+
+        JButton continueButton = new JButton("Continue");
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(continueButton);
+        continueButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                continueButtonPressed();
+            }
+        });
+
+        canvas.add(hostNameLine, BorderLayout.NORTH);
+        canvas.add(display, BorderLayout.CENTER);
+        canvas.add(buttonPanel, BorderLayout.SOUTH);
+
+    }
+
+    private static void makeConfirmationPanel() {
+        canvas.setLayout(new BorderLayout());
+        panelWidth = 600;
+        panelHeight = 500;
+
+        int newlineLocation;
+        String tagline = device.getCSVString();
+        String tags = tagline.substring(0, tagline.indexOf("\n"));
+        String values = tagline.substring(tagline.indexOf("\n") + 1);
+        values = values.replaceAll(",", " ,");
+        String[] tagArray = tags.split(",");
+        String[] valuesArray = values.split(",");
+        String tagsPreview = "";
+        System.out.println("");
+
+        for (int i = 0; i < tagArray.length; i++) {
+            tagsPreview = tagsPreview + tagArray[i] + ": " + valuesArray[i] + " \n";
+        }
+
+
+        JTextArea display = new JTextArea(10, 40);
+        display.setText(tagsPreview);
+        display.setEditable(false);
+        JScrollPane displayPane = new JScrollPane(display);
+
+        JPanel buttonBar = new JPanel(new GridLayout(1, 2));
+        JButton ticketDump = new JButton("Pastable Ticket Description");
+        JButton exportButton = new JButton("Export to CSV");
+        buttonBar.add(ticketDump);
+        buttonBar.add(exportButton);
+
+        //canvas.add(display, BorderLayout.CENTER);
+        canvas.add(displayPane);
+        canvas.add(buttonBar, BorderLayout.SOUTH);
+        System.out.println("MADE IT TO CONFIRM PANEL END");
+
+    }
+
     private static void makePanel(String key) {
         if (key.compareToIgnoreCase("tech") == 0) {
             makeTechPanel();
@@ -471,6 +564,10 @@ public class LoblawProvisioning {
             makeStorePanel();
         } else if (key.compareToIgnoreCase("tags") == 0) {
             makeTagsPanel();
+        } else if (key.compareToIgnoreCase("host") == 0) {
+            makeHostnamePanel();
+        } else if (key.compareToIgnoreCase("conf") == 0) {
+            makeConfirmationPanel();
         }
     }
 
@@ -576,7 +673,9 @@ public class LoblawProvisioning {
         tagLanguage = ((JComboBox) entries.get(5)).getSelectedIndex();
         System.out.println("language:" + language);
         ////////////////////////////////////////////////////////line of business
-        tagLineOfBusiness = ((JTextField) entries.get(6)).getText();
+        String lineOfBusiness = lOBOptions[((JComboBox) entries.get(6)).getSelectedIndex()];
+        tagLineOfBusiness = ((JComboBox) entries.get(6)).getSelectedIndex();
+        System.out.println("Line of Business:" + lineOfBusiness);
         ////////////////////////////////////////////////////////////store number
         tagStoreID = ((JTextField) entries.get(7)).getText();
         ///////////////////////////////////////////////////////////location type
@@ -604,7 +703,7 @@ public class LoblawProvisioning {
         //attempting to add this info onto the device, will receive an ArrayList
         //of Strings which contain the detailed error message
         errors = device.setTags(banner, configuration, connectionType,
-                inBuildingLocation, interactive, language, tagLineOfBusiness, tagStoreID,
+                inBuildingLocation, interactive, language, lineOfBusiness, tagStoreID,
                 locationType, manufacturer, tagMPModel, orientation, tagIPAddress);
 
         if (errors.size() > 0) {//if the array list isnt empty, there's a problem
@@ -612,7 +711,30 @@ public class LoblawProvisioning {
             return;//break to rebuild form with saved values
         }
         //if we got here, we did not have any errors, so this was a success
-        currentCanvas = "done";
+        currentCanvas = "host";
+    }
+
+    private static void handleHostContinue() {
+        ArrayList<String> errors = new ArrayList();
+
+        String numEntryString = ((JTextField) entries.get(0)).getText();
+        boolean addLeadingZero = false;
+        try {
+            int numEntered = Integer.parseInt(numEntryString);
+            if (numEntered < 10 && numEntryString.length() == 1) {
+                addLeadingZero = true;
+            }
+        } catch (Exception e) {
+            errors.add("Device number entry not a valid number");
+            displayErrors(errors);
+            return;
+        }
+        if (addLeadingZero) {
+            numEntryString = "0" + numEntryString;
+        }
+        device.setHostname(numEntryString);
+
+        currentCanvas = "conf";
     }
 
     private static ArrayList<String> checkInvalidChars() {
@@ -676,6 +798,12 @@ public class LoblawProvisioning {
             handleStoreContinue();
         } else if (currentCanvas.compareToIgnoreCase("tags") == 0) {
             handleTagsContinue();
+        } else if (currentCanvas.compareToIgnoreCase("host") == 0) {
+            handleHostContinue();
+            //do nothin
+        } else if (currentCanvas.compareToIgnoreCase("conf") == 0) {
+
+            //do nothin
         } else {
             System.out.println("ERROR! BAD STATE CODE,"
                     + " BAD! BAD STATE CODE, BAD!");
@@ -684,4 +812,5 @@ public class LoblawProvisioning {
         }
         buildCanvas();
     }
+
 }

@@ -135,22 +135,25 @@ public class Computron {
         iblocationTag = iBLoc;//from a dropdown - no checking needed
         interactiveTag = interactive;//from a dropdown - no checking needed
         languageTag = language;//from a dropdown - no checking needed
+        lOBTag = lOB;//from a dropdown - no checking needed
         locTypeTag = locType;//from a dropdown - no checking needed
         manufacturerTag = manufacturer;//from a dropdown - no checking needed
         orientationTag = orientation;//from a dropdown - no checking needed
 
         ipAddressTag = ip;//needs checked
-        lOBTag = lOB;//needs checked
         storeIDTag = storeID;//needs checked
         modelTag = model;//needs checked
 
         ArrayList<String> errors = new ArrayList();
         errors = testIP(ip);
-        errors.addAll(testLOB(lOB));
         errors.addAll(testStoreIDTag(storeIDTag));
         errors.addAll(testModelTag(model));
 
         return errors;
+    }
+    
+    public void setHostname(String deviceNumber){
+        hostname = getHostnamePrefix()+deviceNumber;
     }
 
     private String stripPhone(String phone) {
@@ -275,9 +278,14 @@ public class Computron {
         //breaking down into octets
         String firstOctet = ip.substring(0, ip.indexOf("."));
         String rest = ip.substring(ip.indexOf(".") + 1);
-
+        boolean goodFirst, goodSecond, goodThird, goodFourth = false;
         try {
-            Integer.parseInt(firstOctet);
+            int first = Integer.parseInt(firstOctet);
+            if(first<0||first>255){//unnecessary for now, but might need later
+                errors.add(first + " is out of octet range (0-255)");
+            } else if(first!=172){
+                errors.add("Loblaw IPs should start with 172, yours starts with:" + first);
+            }
         } catch (Exception e) {
             errors.add("first octet \"" + firstOctet + "\" is not a valid int");
         }
@@ -285,7 +293,12 @@ public class Computron {
         String secondOctet = rest.substring(0, rest.indexOf("."));
         rest = rest.substring(rest.indexOf(".") + 1);
         try {
-            Integer.parseInt(secondOctet);
+            int second = Integer.parseInt(secondOctet);
+            if(second!=23){
+                errors.add("Second octet of IP should be 23, you entered:" + second);
+            } else if(second<0||second>255){
+                errors.add("second octet \"" + secondOctet + "\" is not a valid int");
+            }
         } catch (Exception e) {
             errors.add("second Octet \"" + secondOctet + "\" is not a valid int");
         }
@@ -293,14 +306,20 @@ public class Computron {
         String thirdOctet = rest.substring(0, rest.indexOf("."));
         rest = rest.substring(rest.indexOf(".") + 1);
         try {
-            Integer.parseInt(thirdOctet);
+            int third = Integer.parseInt(thirdOctet);
+            if(third<0||third>255){
+                errors.add("third octet \"" + thirdOctet + "\" is not a valid int");
+            }
         } catch (Exception e) {
             errors.add("third Octet \"" + thirdOctet + "\" is not a valid int");
         }
 
         String fourthOctet = rest;
         try {
-            Integer.parseInt(fourthOctet);
+            int fourth = Integer.parseInt(fourthOctet);
+            if(fourth<0||fourth>255){
+                errors.add("fourth octet \"" + fourthOctet + "\" is not a valid int");
+            }
         } catch (Exception e) {
             errors.add("fourth Octet \"" + fourthOctet + "\" is not a valid int");
         }
@@ -308,19 +327,26 @@ public class Computron {
         return errors;
     }
 
-    private ArrayList<String> testLOB(String lOB) {
-        //TO DO
-        return null;
-    }
 
     private ArrayList<String> testStoreIDTag(String storeIDTag) {
-        //To Do
-        return null;
+        ArrayList<String> errors = new ArrayList();
+ 
+        for (int i = 0; i < storeIDTag.length(); i++) {
+            int asciiValue = (int) storeIDTag.charAt(i);
+                    //is letter                                   is number                                 is -
+                if (!((asciiValue >= 65 && asciiValue <= 122) || (asciiValue >= 48 && asciiValue <= 57)||asciiValue == 45||asciiValue==32)) {
+                    errors.add("Store ID " + (i + 1) + " (" + storeIDTag.charAt(i) + ") " + " is not a valid letter, number,-, or space");
+                }
+            
+        }
+
+        return errors;
     }
 
     private ArrayList<String> testModelTag(String model) {
-        //To Do
-        return null;
+        ArrayList<String> errors = new ArrayList();
+        //right now, we except pretty much anything as the model
+        return errors;
     }
 
     public String getCSVString() {
@@ -346,15 +372,24 @@ public class Computron {
         String c = ",";
         //bohica
         String values = hostname + c + "false" + c + ipAddressTag + c
-                + c + c + c + "Running" + serialTag + c + "Digital Signage Network Player" + c
+                + c + c + c + "Running" +c+ serialTag + c + "Digital Signage Network Player" + c
                 + "Stratacache" + c + "Spectra 200" + c + "S-200-W7" + c + c + c + c
                 + "North America" + c + "Canada" + c + storeProvince + c + storeCity + c
                 + storeStreet + c + storePostal + c + "0.0" + c + "0.0" + c + "true" + c + "false" + c
                 + c + c + c + c + bannerTag + c + configurationTag + c + connectionTag + c
                 + iblocationTag + c + interactiveTag + c + languageTag + c + lOBTag + c
                 + storeIDTag + c + locTypeTag + c + manufacturerTag + c + modelTag + c
-                + "Yes" + c + orientationTag + dateTag;
+                + "Yes" + c + orientationTag+c+dateTag;
 
         return tagNames + nl + values;
+    }
+    
+    public String getHostnamePrefix(){
+        String leadingZeros = "";
+        int numZeros = 5-storeIDTag.length();
+        for(int i=0;i<numZeros;i++){
+            leadingZeros = leadingZeros+"0";
+        }
+        return leadingZeros+storeIDTag+"_"+"DS"+"_"+iblocationTag+"_";
     }
 }
