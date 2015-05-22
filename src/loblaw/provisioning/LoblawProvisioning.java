@@ -703,9 +703,11 @@ public class LoblawProvisioning {
         }
         //attempting to add this info onto the device, will receive an ArrayList
         //of Strings which contain the detailed error message
-        errors = device.setTags(tagBanner, tagConfig, tagConnectionType,
-                tagInBuildingLocation, tagInteractive, tagLanguage, tagLineOfBusiness, tagStoreID,
-                tagLocationType, tagManufacturer, tagMPModel, tagOrientation, tagIPAddress);
+        int offset = -1;//we added a null value to the beginning of the arraylists after importing them.
+                       //so we need to correct that when passing it through or else it will get out of bounds.
+        errors = device.setTags(tagBanner+offset, tagConfig+offset, tagConnectionType+offset,
+                tagInBuildingLocation+offset, tagInteractive+offset, tagLanguage+offset, tagLineOfBusiness+offset, tagStoreID,
+                tagLocationType+offset, tagManufacturer+offset, tagMPModel, tagOrientation+offset, tagIPAddress);
 
         if (errors.size() > 0) {//if the array list isnt empty, there's a problem
             displayErrors(errors);//this method prints them all on a new window
@@ -868,13 +870,15 @@ public class LoblawProvisioning {
             while ((sCurrentLine = br.readLine()) != null) {
                 toReturn.add(sCurrentLine);
             }
+            br.close();
         } catch (IOException e) {
-            System.out.println("Error in " + filePath + ": " + e);
+            System.out.println("Error in " + filePath + ":\n" + e);
         }
         return toReturn;
     }
 
     private static void populateArrays() {
+        try{
         populateBanner();
         populateConfiguration();
         populateConnectionType();
@@ -887,6 +891,9 @@ public class LoblawProvisioning {
         populateOrientation();
         populateProvinces();
         populateBannerChars();
+        } catch(Exception e){
+            System.out.println("Crashed while reading arrays from files:\n"+e.getLocalizedMessage());
+        }
     }
 
     private static void populateBanner() {
