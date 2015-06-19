@@ -14,25 +14,22 @@ public class Computron {
     String[] phoneToStrip = {"-", ".", "(", ")"};//to remove valid non-numbers
     String[] postToStrip = {"-", " "};//to remove valid non-alphanums
 
-
-    static String[] bannerTags;
-    static String[] configurationTags;
-    static String[] connectionTypeTags;
-    static String[] inBuildingLocationTags;
-    static String[] inBuildingLocationHostnames;
-    static String[] interactiveTags;
-    static String[] languageTags;
-    static String[] lineOfBusinessTags;
-    static String[] locationTypeTags;
-    static String[] manufacturerTags;
-    static String[] orientationTags;
-    static String[] provinceTags;
+    static String[] locationOptions
+            = {"", "ABM", "Aisle Display", "Array", "Colleague Staff room","CFR",
+                "End Cap", "Health and Beauty", "Hot Meals Ready", "Hub",
+                "Island Aisle Display", "Kiosk", "Lane", "Optical", "Pet",
+                "Pharmacy", "Rate Board"};
+    static String[] locationHostname = {"", "ABM","Aisle Display", "Array",
+        "Colleague Staff Room", "CFR","End Cap","Health and Beauty",
+        "Hot Meals Ready", "HUB","Island Aisle Display","KOK", "LNE", "Optical",
+        "Pet", "Pharmacy", "RTB"};
     //tech info
     String name = "";//needs checked
     String techPhone = "";//needs checked
     String company = "";//needs checked
     String purchaseOrder = "";//can be anything
     //store info
+    String storeNumPlayers = "";
     String storePhone = "";//needs checked
     String storeStreet = "";//can be almost anything
     String storeCity = "";//needs checked
@@ -42,8 +39,7 @@ public class Computron {
     String bannerTag = "";//from a dropdown - no checking needed
     String configurationTag = "";//from a dropdown - no checking needed
     String connectionTag = "";//from a dropdown - no checking needed
-    String iblocationTag = "";//from a dropdown - no checking needed
-    String ibHostname = "";
+    int iblocationTag;//from a dropdown - no checking needed
     String interactiveTag = "";//from a dropdown - no checking needed
     String languageTag = "";//from a dropdown - no checking needed
     String lOBTag = "";//needs checked
@@ -56,30 +52,9 @@ public class Computron {
     String serialTag = "";//needs checked
     String hostname = "";
 
-    public Computron(String[] bannerT,
-            String[] configurationT,
-           String[] connectionTypeT,
-            String[] inBuildingLocationT, String[] inBuildingLocationH,
-            String[] interactiveT,
-            String[] languageT,
-            String[] lineOfBusinessT,
-            String[] locationTypeT, //////////////FUUUUUUUUCK
-            String[] manufacturerT,
-            String[] orientationT,
-            String[] provinceT) {
-
-        bannerTags = bannerT;
-        configurationTags = configurationT;
-        connectionTypeTags = connectionTypeT;
-        inBuildingLocationTags = inBuildingLocationT;
-        inBuildingLocationHostnames = inBuildingLocationH;
-        interactiveTags = interactiveT;
-        languageTags = languageT;
-        lineOfBusinessTags = lineOfBusinessT;
-        locationTypeTags = locationTypeT;
-        manufacturerTags = manufacturerT;
-        orientationTags = orientationT;
-        provinceTags = provinceT;
+    public Computron() {
+        //silence is golden.
+        //...
 
     }
 
@@ -115,9 +90,16 @@ public class Computron {
         return errors;
     }
 
-    public ArrayList<String> setStoreInfo(String sphone, String sstreet, String scity, String sprovince, String spostal) {
+    public ArrayList<String> setStoreInfo(String numPlayers, String sphone, String sstreet, String scity, String sprovince, String spostal) {
         ArrayList<String> errors = new ArrayList();
 
+        //handle numPlayers
+        try{
+            int test = Integer.parseInt(numPlayers);
+        }catch(Exception e){
+            storeNumPlayers = numPlayers;
+            errors.add("Non-Integer entered for number of players");
+        }
         ////////handle phone
         String tempPhone = stripPhone(sphone);
         boolean goodPhone = testPhone(tempPhone);
@@ -155,27 +137,21 @@ public class Computron {
         return errors;
     }
 
-    public ArrayList<String> setTags(int bannerSelection, int configurationSelection, int connectionTypeSelection, int inBuildingLocationSelection, int interactiveSelection,
-            int languageSelection, int lineOfBusinessSelection, String storeID, int locationTypeSelection,
-            int manufacturerSelection, String model, int orientationSelection, String ip) {
+    public ArrayList<String> setTags(String banner, String config, String connectionType, int iBLoc, String interactive,
+            String language, String lOB, String storeID, String locType,
+            String manufacturer, String model, String orientation, String ip) {
         //jesus thats a lot of parameters 8O
-        try{
-        bannerTag = bannerTags[bannerSelection];
-        configurationTag = configurationTags[configurationSelection];
-        connectionTag = connectionTypeTags[connectionTypeSelection];
-        iblocationTag = inBuildingLocationTags[inBuildingLocationSelection];
-        ibHostname = inBuildingLocationHostnames[inBuildingLocationSelection];
-        interactiveTag = interactiveTags[interactiveSelection];//from a dropdown - no checking needed
-        languageTag = languageTags[languageSelection];//from a dropdown - no checking needed
-        lOBTag = lineOfBusinessTags[lineOfBusinessSelection];//from a dropdown - no checking needed
-        locTypeTag = locationTypeTags[locationTypeSelection];//from a dropdown - no checking needed
-        manufacturerTag = manufacturerTags[manufacturerSelection];//from a dropdown - no checking needed
-        orientationTag = orientationTags[orientationSelection];//from a dropdown - no checking needed
-        } catch(Exception e){
-            System.out.println(e.getMessage());
-            System.out.println("locationTypeSelection: " + locationTypeSelection);
-            System.out.println("locationTypeTags size: " + locationTypeTags.length);      
-        }
+        bannerTag = banner;
+        configurationTag = config;
+        connectionTag = connectionType;//from a dropdown - no checking needed
+        iblocationTag = iBLoc;//from a dropdown - no checking needed
+        interactiveTag = interactive;//from a dropdown - no checking needed
+        languageTag = language;//from a dropdown - no checking needed
+        lOBTag = lOB;//from a dropdown - no checking needed
+        locTypeTag = locType;//from a dropdown - no checking needed
+        manufacturerTag = manufacturer;//from a dropdown - no checking needed
+        orientationTag = orientation;//from a dropdown - no checking needed
+
         ipAddressTag = ip;//needs checked
         storeIDTag = storeID;//needs checked
         modelTag = model;//needs checked
@@ -187,9 +163,9 @@ public class Computron {
 
         return errors;
     }
-
-    public void setHostname(String deviceNumber) {
-        hostname = getHostnamePrefix() + deviceNumber;
+    
+    public void setHostname(String deviceNumber){
+        hostname = getHostnamePrefix()+deviceNumber;
     }
 
     private String stripPhone(String phone) {
@@ -317,9 +293,9 @@ public class Computron {
         boolean goodFirst, goodSecond, goodThird, goodFourth = false;
         try {
             int first = Integer.parseInt(firstOctet);
-            if (first < 0 || first > 255) {//unnecessary for now, but might need later
+            if(first<0||first>255){//unnecessary for now, but might need later
                 errors.add(first + " is out of octet range (0-255)");
-            } else if (first != 172) {
+            } else if(first!=172){
                 errors.add("Loblaw IPs should start with 172, yours starts with:" + first);
             }
         } catch (Exception e) {
@@ -330,9 +306,9 @@ public class Computron {
         rest = rest.substring(rest.indexOf(".") + 1);
         try {
             int second = Integer.parseInt(secondOctet);
-            if (second != 23) {
+            if(second!=23){
                 errors.add("Second octet of IP should be 23, you entered:" + second);
-            } else if (second < 0 || second > 255) {
+            } else if(second<0||second>255){
                 errors.add("second octet \"" + secondOctet + "\" is not a valid int");
             }
         } catch (Exception e) {
@@ -343,7 +319,7 @@ public class Computron {
         rest = rest.substring(rest.indexOf(".") + 1);
         try {
             int third = Integer.parseInt(thirdOctet);
-            if (third < 0 || third > 255) {
+            if(third<0||third>255){
                 errors.add("third octet \"" + thirdOctet + "\" is not a valid int");
             }
         } catch (Exception e) {
@@ -353,7 +329,7 @@ public class Computron {
         String fourthOctet = rest;
         try {
             int fourth = Integer.parseInt(fourthOctet);
-            if (fourth < 0 || fourth > 255) {
+            if(fourth<0||fourth>255){
                 errors.add("fourth octet \"" + fourthOctet + "\" is not a valid int");
             }
         } catch (Exception e) {
@@ -363,16 +339,17 @@ public class Computron {
         return errors;
     }
 
+
     private ArrayList<String> testStoreIDTag(String storeIDTag) {
         ArrayList<String> errors = new ArrayList();
-
+ 
         for (int i = 0; i < storeIDTag.length(); i++) {
             int asciiValue = (int) storeIDTag.charAt(i);
-            //is letter                                   is number                                 is -
-            if (!((asciiValue >= 65 && asciiValue <= 122) || (asciiValue >= 48 && asciiValue <= 57) || asciiValue == 45 || asciiValue == 32)) {
-                errors.add("Store ID " + (i + 1) + " (" + storeIDTag.charAt(i) + ") " + " is not a valid letter, number,-, or space");
-            }
-
+                    //is letter                                   is number                                 is -
+                if (!((asciiValue >= 65 && asciiValue <= 122) || (asciiValue >= 48 && asciiValue <= 57)||asciiValue == 45||asciiValue==32)) {
+                    errors.add("Store ID " + (i + 1) + " (" + storeIDTag.charAt(i) + ") " + " is not a valid letter, number,-, or space");
+                }
+            
         }
 
         return errors;
@@ -403,75 +380,84 @@ public class Computron {
         String c = ",";
         //bohica
         String values = hostname + c + "false" + c + ipAddressTag + c
-                + c + c + c + "Running" + c + serialTag + c + "Digital Signage Network Player" + c
+                + c + c + c + "Running" +c+ serialTag + c + "Digital Signage Network Player" + c
                 + "Stratacache" + c + "Spectra 200" + c + "S-200-W7" + c + c + c + c
                 + "North America" + c + "Canada" + c + storeProvince + c + storeCity + c
                 + storeStreet + c + storePostal + c + "0.0" + c + "0.0" + c + "true" + c + "false" + c
                 + c + c + c + c + bannerTag + c + configurationTag + c + connectionTag + c
-                + iblocationTag + c + interactiveTag + c + languageTag + c + lOBTag + c
+                + locationOptions[iblocationTag] + c + interactiveTag + c + languageTag + c + lOBTag + c
                 + storeIDTag + c + locTypeTag + c + manufacturerTag + c + modelTag + c
-                + "Yes" + c + orientationTag + c + getDateTag();
+                + "Yes" + c + orientationTag+c+getDateTag();
 
         return tagNames + nl + values;
     }
-
-    public String getHostnamePrefix() {
+    
+    public String getHostnamePrefix(){
         String leadingZeros = "";
-        int numZeros = 5 - storeIDTag.length();
-        for (int i = 0; i < numZeros; i++) {
-            leadingZeros = leadingZeros + "0";
+        int numZeros = 5-storeIDTag.length();
+        for(int i=0;i<numZeros;i++){
+            leadingZeros = leadingZeros+"0";
         }
-        return leadingZeros + storeIDTag + "_" + "DS" + "_" + iblocationTag + "_";
+        return leadingZeros+storeIDTag+"_"+"DS"+"_"+locationHostname[iblocationTag]+"_";
     }
-
-    public String getHostname() {
+    public String getHostname(){
         return hostname;
     }
-
-    public String getTechInfo() {
-        String tname = "Technician Name (first name will do): " + name + "\n";
-        String tnumbah = "Technician Mobile Number: " + techPhone + "\n";
-        String tCompany = "Technician Company: " + company + "\n";
-        String poNumber = "Purchase Order #: " + purchaseOrder + "\n";
-
-        return tname + tnumbah + tCompany + poNumber;
+    public String getTechInfo(){
+        String tname = "Technician Name (first name will do): " + name+"\n";
+        String tnumbah = "Technician Mobile Number: " + techPhone+"\n";
+        String tCompany = "Technician Company: " + company+"\n"; 
+        String poNumber = "Purchase Order #: " + purchaseOrder+"\n";
+        
+        return tname+tnumbah+tCompany+poNumber;
     }
-
-    public String getStoreInfo() {
+    public String getStoreInfo(){
         String sInfo = "Don't forget to fill out the question above this!\n";
         sInfo = "1. What is the Site Address?:\n";
         sInfo = sInfo + storeStreet + "\n";
-        sInfo = sInfo + storeCity + ", " + storeProvince + "\n";
+        sInfo = sInfo + storeCity + ", " + storeProvince +"\n";
         sInfo = sInfo + storePostal;
         return sInfo;
     }
-
-    public String getTagInfo() {
-        String sInfo = "COPY THESE INTO STEP 3 \n";
+    public String getTagInfo(){
+        String sInfo = "\n";
         sInfo = sInfo + "Banner: " + bannerTag + "\n";
         sInfo = sInfo + "Configuration: " + configurationTag + "\n";
         sInfo = sInfo + "Connection Type: " + connectionTag + "\n";
-        sInfo = sInfo + "In Building Location: " + iblocationTag + "\n";
-        sInfo = sInfo + "Interactive: " + interactiveTag + "\n";
-        sInfo = sInfo + "Language: " + languageTag + "\n";
-        sInfo = sInfo + "Line of Business: " + lOBTag + "\n";
+        sInfo = sInfo + "In Building Location: " + locationOptions[iblocationTag] + "\n";
+        sInfo = sInfo + "Interactive: " + interactiveTag +"\n";
+        sInfo = sInfo + "Language: " + languageTag +"\n";
+        sInfo = sInfo + "Line of Business: " + lOBTag +"\n";
         sInfo = sInfo + "Location ID: " + storeIDTag + "\n";
         sInfo = sInfo + "Location Type: " + locTypeTag + "\n";
-        sInfo = sInfo + "Media Player Manufacturer: " + manufacturerTag + "\n";
+        sInfo = sInfo + "Media Player Manufacturer: "+manufacturerTag + "\n";
         sInfo = sInfo + "Media Player Model: " + modelTag + "\n";
         sInfo = sInfo + "NOC Monitor = Yes\n";
         sInfo = sInfo + "Orientation: " + orientationTag + "\n";
         sInfo = sInfo + "Phone Number: " + storePhone + "\n";
         sInfo = sInfo + "Provisioned_Date: " + getDateTag() + "\n";
-
+        
+        
         return sInfo;
     }
-
-    public String getDateTag() {
+    public String getTicketDescription(){
+        return "test";
+    }
+    
+    public String getDateTag(){
         DateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd");
         Calendar cal = Calendar.getInstance();
         String dateTag = dateFormat.format(cal.getTime());
         return dateTag;
     }
-
+    public String getStoreNumber(){
+        return storeIDTag;
+    }
+    public String getBanner(){
+        return bannerTag;
+    }
+    public String getLineOfBusiness(){
+        return lOBTag;
+    }
+    
 }
